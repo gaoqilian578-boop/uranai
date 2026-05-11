@@ -702,19 +702,50 @@ function KitLetterEmbed() {
 }
 
 function LetterPage() {
+  const [showKitForm, setShowKitForm] = useState(false);
+  const formAreaRef = useRef(null);
+
+  const revealForm = () => {
+    setShowKitForm(true);
+    window.setTimeout(() => {
+      formAreaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+  };
+
   return (
     <main className="narrow-page funnel-page">
       <section className="glass-panel funnel-panel">
+        <div className="letter-logo" aria-label="月読 tsukuyomi">
+          <span>月読</span>
+          <small>tsukuyomi</small>
+        </div>
         <p className="eyebrow">night letter</p>
         <h1>夜の手紙を受け取る</h1>
+        <h2 className="letter-subtitle">長い夜に、<br />そっと届く手紙。</h2>
         <p className="lead">
-          夜になると、少しだけ苦しくなる人へ。彼の沈黙。執着。復縁。感情の流れ。
-          四柱推命とタロットで、長い夜のための言葉を届けています。
+          夜になると、<br />
+          少しだけ苦しくなる人へ。
         </p>
         <p>
-          静かな夜に、そっと届く手紙を受け取りませんか。
+          彼の沈黙。<br />
+          既読スルー。<br />
+          執着。<br />
+          復縁。<br />
+          忘れられない恋。<br />
+          <br />
+          四柱推命とタロットで、<br />
+          長い夜のための言葉を届けています。<br />
+          <br />
+          静かな夜に、<br />
+          そっと届く手紙を受け取りませんか。
         </p>
-        <KitLetterEmbed />
+        <button className="primary-button wide letter-cta" onClick={revealForm} type="button">
+          夜の手紙を受け取る
+          <ArrowRight size={18} />
+        </button>
+        <div ref={formAreaRef}>
+          {showKitForm && <KitLetterEmbed />}
+        </div>
       </section>
     </main>
   );

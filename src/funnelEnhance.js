@@ -43,22 +43,26 @@ const page = (inner) => `<section class="funnel-route"><div class="container">${
 
 const letterPage = () => page(`
   <div class="glass-panel">
+    <div class="letter-logo" aria-label="月読 tsukuyomi"><span>月読</span><small>tsukuyomi</small></div>
     <p class="eyebrow">night letter</p>
     <h1>夜の手紙を受け取る</h1>
+    <h2 class="letter-subtitle">長い夜に、<br>そっと届く手紙。</h2>
     <p>夜になると、
 少しだけ苦しくなる人へ。
 
 彼の沈黙。
+既読スルー。
 執着。
 復縁。
-感情の流れ。
+忘れられない恋。
 
 四柱推命とタロットで、
 長い夜のための言葉を届けています。
 
 静かな夜に、
 そっと届く手紙を受け取りませんか。</p>
-    <div class="kit-form-shell" data-kit-letter aria-label="夜の手紙登録フォーム"></div>
+    <button class="primary-button letter-cta" data-show-kit-letter type="button">夜の手紙を受け取る</button>
+    <div data-kit-letter-area></div>
   </div>
 `);
 
@@ -148,7 +152,15 @@ const renderFallbackRoute = () => {
     }
   }
 
-  loadKitLetterForm(root);
+  root.querySelector("[data-show-kit-letter]")?.addEventListener("click", () => {
+    const area = root.querySelector("[data-kit-letter-area]");
+    if (!area) return;
+    if (!area.querySelector("[data-kit-letter]")) {
+      area.innerHTML = `<div class="kit-form-shell" data-kit-letter aria-label="夜の手紙登録フォーム"></div>`;
+    }
+    loadKitLetterForm(root);
+    area.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
   root.querySelector("[data-funnel-pay]")?.addEventListener("click", () => {
     localStorage.setItem("paymentCompleted", "true");
     window.location.href = `/course/${selectedId()}`;
