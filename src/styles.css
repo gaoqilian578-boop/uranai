@@ -1399,6 +1399,18 @@ label small {
   margin-top: 28px;
 }
 
+.kit-form-shell {
+  display: grid;
+  justify-items: center;
+  width: min(100%, 520px);
+  min-height: 120px;
+  margin: 30px auto 0;
+}
+
+.kit-form-shell > * {
+  width: 100%;
+}
+
 .thanks-box {
   display: grid;
   gap: 12px;

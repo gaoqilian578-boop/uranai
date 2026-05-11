@@ -65,6 +65,18 @@
   box-shadow: 0 0 28px rgba(158, 220, 255, 0.12);
 }
 
+.kit-form-shell {
+  display: grid;
+  justify-items: center;
+  width: min(100%, 520px);
+  min-height: 120px;
+  margin: 30px auto 0;
+}
+
+.kit-form-shell > * {
+  width: 100%;
+}
+
 .funnel-thanks {
   border: 1px solid rgba(214, 239, 255, 0.22);
   border-radius: 18px;

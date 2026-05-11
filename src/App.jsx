@@ -12,7 +12,7 @@ import {
   Stars,
   UserRound,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { SITE_CONFIG } from "./config";
 
 const answerOptions = [
@@ -679,10 +679,29 @@ function ResultPage({ type, onRestart }) {
   );
 }
 
-function LetterPage() {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+function KitLetterEmbed() {
+  const embedRef = useRef(null);
 
+  useEffect(() => {
+    const container = embedRef.current;
+    if (!container) return undefined;
+
+    container.innerHTML = "";
+    const script = document.createElement("script");
+    script.async = true;
+    script.dataset.uid = "c22d2585e3";
+    script.src = "https://tsukuyomi-night.kit.com/c22d2585e3/index.js";
+    container.appendChild(script);
+
+    return () => {
+      container.innerHTML = "";
+    };
+  }, []);
+
+  return <div className="kit-form-shell" ref={embedRef} aria-label="夜の手紙登録フォーム" />;
+}
+
+function LetterPage() {
   return (
     <main className="narrow-page funnel-page">
       <section className="glass-panel funnel-panel">
@@ -695,35 +714,7 @@ function LetterPage() {
         <p>
           静かな夜に、そっと届く手紙を受け取りませんか。
         </p>
-        {!submitted ? (
-          <form
-            className="letter-form"
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (email) setSubmitted(true);
-            }}
-          >
-            <label>
-              <span><Mail size={16} /> メールアドレス</span>
-              <input
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="you@example.com"
-                required
-              />
-            </label>
-            <button className="primary-button wide" type="submit">
-              夜の手紙を受け取る
-              <ArrowRight size={18} />
-            </button>
-          </form>
-        ) : (
-          <div className="thanks-box">
-            <Check size={20} />
-            <p>登録ありがとうございます。<br />最初の夜の手紙を、静かにお届けします。</p>
-          </div>
-        )}
+        <KitLetterEmbed />
       </section>
     </main>
   );

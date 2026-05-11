@@ -58,11 +58,7 @@ const letterPage = () => page(`
 
 静かな夜に、
 そっと届く手紙を受け取りませんか。</p>
-    <form class="funnel-form" data-letter-form>
-      <input type="email" name="email" placeholder="メールアドレス" required>
-      <button class="primary-button" type="submit">夜の手紙を受け取る</button>
-    </form>
-    <div class="funnel-thanks" data-letter-thanks hidden>登録ありがとうございます。<br>最初の夜の手紙を、静かにお届けします。</div>
+    <div class="kit-form-shell" data-kit-letter aria-label="夜の手紙登録フォーム"></div>
   </div>
 `);
 
@@ -152,15 +148,21 @@ const renderFallbackRoute = () => {
     }
   }
 
-  root.querySelector("[data-letter-form]")?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    root.querySelector("[data-letter-form]")?.setAttribute("hidden", "");
-    root.querySelector("[data-letter-thanks]")?.removeAttribute("hidden");
-  });
+  loadKitLetterForm(root);
   root.querySelector("[data-funnel-pay]")?.addEventListener("click", () => {
     localStorage.setItem("paymentCompleted", "true");
     window.location.href = `/course/${selectedId()}`;
   });
+};
+
+const loadKitLetterForm = (root) => {
+  const container = root.querySelector("[data-kit-letter]");
+  if (!container || container.querySelector("script")) return;
+  const script = document.createElement("script");
+  script.async = true;
+  script.dataset.uid = "c22d2585e3";
+  script.src = "https://tsukuyomi-night.kit.com/c22d2585e3/index.js";
+  container.appendChild(script);
 };
 
 const enhanceResult = () => {
