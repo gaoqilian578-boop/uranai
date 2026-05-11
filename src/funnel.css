@@ -115,6 +115,39 @@
   width: 100%;
 }
 
+.kit-loading {
+  color: var(--gold-soft);
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.kit-form-shell .formkit-form[data-uid="c22d2585e3"] {
+  display: block !important;
+  width: 100% !important;
+  max-width: 700px !important;
+  margin: 0 auto !important;
+}
+
+.kit-form-shell .formkit-modal,
+.kit-form-shell .formkit-modal.guard {
+  display: block !important;
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  max-width: 700px !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+.kit-form-shell .formkit-modal .formkit-close {
+  display: none !important;
+}
+
 .funnel-thanks {
   border: 1px solid rgba(214, 239, 255, 0.22);
   border-radius: 18px;

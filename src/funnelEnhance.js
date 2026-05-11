@@ -156,7 +156,7 @@ const renderFallbackRoute = () => {
     const area = root.querySelector("[data-kit-letter-area]");
     if (!area) return;
     if (!area.querySelector("[data-kit-letter]")) {
-      area.innerHTML = `<div class="kit-form-shell" data-kit-letter aria-label="夜の手紙登録フォーム"></div>`;
+      area.innerHTML = `<div class="kit-form-shell" data-kit-letter aria-label="夜の手紙登録フォーム"><p class="kit-loading">夜の手紙を開いています...</p></div>`;
     }
     loadKitLetterForm(root);
     area.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -170,10 +170,22 @@ const renderFallbackRoute = () => {
 const loadKitLetterForm = (root) => {
   const container = root.querySelector("[data-kit-letter]");
   if (!container || container.querySelector("script")) return;
+  const existingScript = document.querySelector('script[data-uid="c22d2585e3"]');
+  if (existingScript) return;
   const script = document.createElement("script");
   script.async = true;
   script.dataset.uid = "c22d2585e3";
   script.src = "https://tsukuyomi-night.kit.com/c22d2585e3/index.js";
+  script.addEventListener("load", () => {
+    window.setTimeout(() => {
+      const kitModal = document.querySelector(".formkit-modal");
+      if (kitModal && !container.contains(kitModal)) {
+        kitModal.classList.add("kit-inline-modal");
+        container.appendChild(kitModal);
+      }
+      container.querySelector(".kit-loading")?.remove();
+    }, 120);
+  });
   container.appendChild(script);
 };
 

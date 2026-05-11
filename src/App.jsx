@@ -679,38 +679,45 @@ function ResultPage({ type, onRestart }) {
   );
 }
 
-function KitLetterEmbed() {
-  const embedRef = useRef(null);
-
-  useEffect(() => {
-    const container = embedRef.current;
-    if (!container) return undefined;
-
-    container.innerHTML = "";
-    const script = document.createElement("script");
-    script.async = true;
-    script.dataset.uid = "c22d2585e3";
-    script.src = "https://tsukuyomi-night.kit.com/c22d2585e3/index.js";
-    container.appendChild(script);
-
-    return () => {
-      container.innerHTML = "";
-    };
-  }, []);
-
-  return <div className="kit-form-shell" ref={embedRef} aria-label="夜の手紙登録フォーム" />;
-}
-
 function LetterPage() {
   const [showKitForm, setShowKitForm] = useState(false);
   const formAreaRef = useRef(null);
 
   const revealForm = () => {
     setShowKitForm(true);
-    window.setTimeout(() => {
-      formAreaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 80);
   };
+
+  useEffect(() => {
+    if (!showKitForm) return;
+
+    const formArea = formAreaRef.current;
+    if (!formArea) return;
+
+    formArea.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    if (formArea.querySelector('script[data-uid="c22d2585e3"]')) return;
+
+    formArea.innerHTML = '<p class="kit-loading">夜の手紙を開いています...</p>';
+
+    const existingScript = document.querySelector('script[data-uid="c22d2585e3"]');
+    if (existingScript) return;
+
+    const script = document.createElement("script");
+    script.async = true;
+    script.dataset.uid = "c22d2585e3";
+    script.src = "https://tsukuyomi-night.kit.com/c22d2585e3/index.js";
+    script.addEventListener("load", () => {
+      window.setTimeout(() => {
+        const kitModal = document.querySelector(".formkit-modal");
+        if (kitModal && !formArea.contains(kitModal)) {
+          kitModal.classList.add("kit-inline-modal");
+          formArea.appendChild(kitModal);
+        }
+        formArea.querySelector(".kit-loading")?.remove();
+      }, 120);
+    });
+    formArea.appendChild(script);
+  }, [showKitForm]);
 
   return (
     <main className="narrow-page funnel-page">
@@ -743,9 +750,9 @@ function LetterPage() {
           夜の手紙を受け取る
           <ArrowRight size={18} />
         </button>
-        <div ref={formAreaRef}>
-          {showKitForm && <KitLetterEmbed />}
-        </div>
+        {showKitForm && (
+          <div className="kit-form-shell" ref={formAreaRef} aria-label="夜の手紙登録フォーム" />
+        )}
       </section>
     </main>
   );
