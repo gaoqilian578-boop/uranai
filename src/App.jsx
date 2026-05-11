@@ -356,9 +356,14 @@ function calculateType(answers, form) {
 function TypeVisual({ type, large = false }) {
   const [a, b, c] = type.palette;
   return (
-    <div className={`type-visual ${large ? "type-visual-large" : ""}`}>
+    <div className={`type-visual type-visual-${type.id} ${large ? "type-visual-large" : ""}`}>
       <div className="orb" style={{ "--a": a, "--b": b }} />
       <div className="moon-ring" style={{ borderColor: c }} />
+      <div className="motif">
+        <span />
+        <span />
+        <span />
+      </div>
       <div className="tarot-frame" />
       <div className="constellation">
         <span />
@@ -404,7 +409,7 @@ function Home({ onStart }) {
         </div>
         <div className="hero-copy">
           <p className="eyebrow">恋愛命式16タイプ診断</p>
-          <h1>あなたの恋は、<br />どの月に支配されているか。</h1>
+          <h1 className="hero-title">あなたの恋は、<br />どの月に<br />支配されているか。</h1>
           <p className="lead">
             既読がつくだけで苦しくなる夜。忘れたいのに忘れられない恋。
             心が彼に戻ってしまう時間。その感情には、ちゃんと理由があります。
@@ -567,7 +572,7 @@ function ResultPage({ type, onRestart }) {
         <TypeVisual type={type} large />
         <div>
           <p className="eyebrow">your moon type</p>
-          <h1>{type.name}</h1>
+          <h1 className="result-title">{type.name}</h1>
           <p className="symbol">{type.symbol}</p>
           <p className="lead">{type.short}</p>
         </div>
