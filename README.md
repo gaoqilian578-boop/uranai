@@ -17,6 +17,16 @@ npm run dev
 npm run build
 ```
 
+## Vercel
+
+このプロジェクトは Vite アプリです。
+
+- Framework Preset: `Vite`
+- Build Command: `npm run build`
+- Output Directory: `dist`
+
+`vercel.json` にも同じ設定を入れています。
+
 ## URL設定
 
 深読み導線とLINE導線は `src/config.js` で変更できます。
