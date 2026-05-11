@@ -4,13 +4,15 @@ import {
   CalendarDays,
   Check,
   Clock3,
+  CreditCard,
   Heart,
+  Mail,
   Moon,
   Sparkles,
   Stars,
   UserRound,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SITE_CONFIG } from "./config";
 
 const answerOptions = [
@@ -326,6 +328,29 @@ const scoringGroups = [
   [7, 14, 15],
 ];
 
+const courseBullets = [
+  "恋愛命式タイプ深掘り",
+  "執着が強くなる理由",
+  "彼の沈黙の読み方",
+  "今やめた方がいい行動",
+  "心を戻す小さなワーク",
+  "月読メッセージ",
+];
+
+function getStoredTypeId() {
+  if (typeof window === "undefined") return 1;
+  return Number.parseInt(localStorage.getItem("tsukuyomiTypeId") || "1", 10) || 1;
+}
+
+function getTypeById(typeId) {
+  return typeData.find((type) => type.id === Number(typeId)) || typeData[0];
+}
+
+function isPaymentCompleted() {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem("paymentCompleted") === "true";
+}
+
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
@@ -385,7 +410,7 @@ function Shell({ children, step }) {
         <span />
       </div>
       <header className="site-header">
-        <button className="brand" onClick={() => step("home")} type="button">
+        <button className="brand" onClick={() => step("/")} type="button">
           <Moon size={18} />
           <span>月読</span>
           <small>tsukuyomi</small>
@@ -605,22 +630,33 @@ function ResultPage({ type, onRestart }) {
       </section>
 
       <section className="cta-panel glass-panel">
+        <p className="eyebrow">night letter</p>
+        <h2>夜の手紙を受け取る</h2>
+        <p>
+          この診断で見えた感情を、一度で終わらせなくていい。彼の沈黙、執着、復縁、
+          命式とカードの流れ。長い夜に、静かに届く言葉を受け取りませんか。
+        </p>
+        <a className="secondary-button" href="/letter">
+          夜の手紙を受け取る
+          <Mail size={18} />
+        </a>
+      </section>
+
+      <section className="cta-panel glass-panel">
         <p className="eyebrow">long night reading</p>
         <h2>診断結果をもっと深く読む夜</h2>
         <p>
           あなたの恋愛命式は、まだ表面だけしか見えていません。執着の理由。彼との距離感。
           恋愛で苦しくなる夜。その流れを、もう少し深く静かに読み解きます。
         </p>
-        <a className="primary-button" href={SITE_CONFIG.NOTE_URL}>
+        <a
+          className="primary-button"
+          href="/mini-course"
+          onClick={() => localStorage.setItem("tsukuyomiTypeId", String(type.id))}
+        >
           もっと深く読む
           <ArrowRight size={18} />
         </a>
-      </section>
-
-      <section className="night-links">
-        <a href={SITE_CONFIG.NOTE_URL}>彼の沈黙を読む夜</a>
-        <a href={SITE_CONFIG.NOTE_URL}>執着をほどく夜</a>
-        <a href={SITE_CONFIG.NOTE_URL}>長い夜に読むもの</a>
       </section>
 
       <section className="line-panel glass-panel">
@@ -643,6 +679,179 @@ function ResultPage({ type, onRestart }) {
   );
 }
 
+function LetterPage() {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  return (
+    <main className="narrow-page funnel-page">
+      <section className="glass-panel funnel-panel">
+        <p className="eyebrow">night letter</p>
+        <h1>夜の手紙を受け取る</h1>
+        <p className="lead">
+          夜になると、少しだけ苦しくなる人へ。彼の沈黙。執着。復縁。感情の流れ。
+          四柱推命とタロットで、長い夜のための言葉を届けています。
+        </p>
+        <p>
+          静かな夜に、そっと届く手紙を受け取りませんか。
+        </p>
+        {!submitted ? (
+          <form
+            className="letter-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (email) setSubmitted(true);
+            }}
+          >
+            <label>
+              <span><Mail size={16} /> メールアドレス</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+            </label>
+            <button className="primary-button wide" type="submit">
+              夜の手紙を受け取る
+              <ArrowRight size={18} />
+            </button>
+          </form>
+        ) : (
+          <div className="thanks-box">
+            <Check size={20} />
+            <p>登録ありがとうございます。<br />最初の夜の手紙を、静かにお届けします。</p>
+          </div>
+        )}
+      </section>
+    </main>
+  );
+}
+
+function MiniCoursePage({ selectedType, navigate }) {
+  return (
+    <main className="result-page funnel-page">
+      <section className="result-hero glass-panel">
+        <TypeVisual type={selectedType} large />
+        <div>
+          <p className="eyebrow">mini course</p>
+          <h1 className="result-title">診断結果をもっと深く読む夜</h1>
+          <p className="lead">あなたの恋愛命式は、<br />まだ表面しか見えていません。</p>
+        </div>
+      </section>
+
+      <section className="moon-message">
+        <p>
+          診断結果は、あなたの恋の入口です。本当に苦しくなる理由は、もう少し深いところにあります。
+        </p>
+        <p>
+          既読がつくだけで苦しくなる夜。彼の沈黙を何度も考える時間。
+          離れたいのに離れられない感情。
+        </p>
+        <p>
+          その流れを、四柱推命とタロットで、もう少し深く読み解きます。
+        </p>
+      </section>
+
+      <section className="reading-card course-list">
+        <h2>この講座で読めること</h2>
+        <ul>
+          {courseBullets.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+        <div className="price-line">100円</div>
+        <button className="primary-button wide" onClick={() => navigate("/checkout")} type="button">
+          100円で深く読む
+          <ArrowRight size={18} />
+        </button>
+      </section>
+    </main>
+  );
+}
+
+function CheckoutPage({ selectedType, navigate }) {
+  return (
+    <main className="narrow-page funnel-page">
+      <section className="glass-panel funnel-panel">
+        <p className="eyebrow">checkout</p>
+        <h1>診断結果をもっと深く読む夜</h1>
+        <p className="lead">
+          この先は、あなたの診断タイプに合わせた小さな講座です。
+          決済後、あなた専用ページへ進めます。
+        </p>
+        <p className="symbol">{selectedType.name} / 100円</p>
+        <button
+          className="primary-button wide"
+          type="button"
+          onClick={() => {
+            localStorage.setItem("paymentCompleted", "true");
+            localStorage.setItem("tsukuyomiTypeId", String(selectedType.id));
+            navigate(`/course/${selectedType.id}`);
+          }}
+        >
+          決済して講座へ進む
+          <CreditCard size={18} />
+        </button>
+      </section>
+    </main>
+  );
+}
+
+function CoursePage({ type }) {
+  return (
+    <main className="result-page course-page">
+      <section className="result-hero glass-panel">
+        <TypeVisual type={type} large />
+        <div>
+          <p className="eyebrow">private course</p>
+          <h1 className="result-title">{type.name}</h1>
+          <p className="symbol">{type.symbol}</p>
+          <p className="lead">{type.short}</p>
+        </div>
+      </section>
+
+      <section className="reading-grid">
+        <Reading title="恋愛で苦しくなる理由" body={type.essence} />
+        <Reading title="出やすいパターン" body={type.habit} />
+        <Reading title="やめた方がいい行動" body="不安を消すためだけに連絡すること。相手の反応を見張ること。自分の心を後回しにして、関係だけを動かそうとすること。" />
+        <Reading title="心を戻すワーク" body="今夜いちばん苦しかった場面を一つだけ書き出し、その下に「私は何を確かめたかったのか」を一文で残してください。答えを急がず、感情を外へ置くことから始めます。" />
+      </section>
+
+      <section className="moon-message">
+        <p className="eyebrow">tsukuyomi message</p>
+        <h2>月読メッセージ</h2>
+        <p>{type.message}</p>
+      </section>
+
+      <section className="cta-panel glass-panel">
+        <p className="eyebrow">night letter</p>
+        <h2>夜の手紙を受け取る</h2>
+        <p>
+          この講座で見えた感情を、一度で終わらせなくていい。彼の沈黙。執着。復縁。
+          命式とカードの流れ。長い夜に、静かに届く言葉を受け取りませんか。
+        </p>
+        <a className="secondary-button" href="/letter">
+          夜の手紙を受け取る
+          <Mail size={18} />
+        </a>
+      </section>
+
+      <section className="line-panel glass-panel">
+        <p className="eyebrow">quiet room</p>
+        <h2>静かに話せる場所へ</h2>
+        <p>
+          誰にも言えない恋を、ひとりで抱えなくていい。今の彼の気持ち、関係の流れ、
+          あなたの命式から見える恋愛傾向を、静かに整理します。
+        </p>
+        <a className="secondary-button" href={SITE_CONFIG.LINE_URL}>
+          静かに話せる場所へ
+          <ArrowRight size={18} />
+        </a>
+      </section>
+    </main>
+  );
+}
+
 function Reading({ title, body }) {
   return (
     <article className="reading-card">
@@ -653,7 +862,7 @@ function Reading({ title, body }) {
 }
 
 export default function App() {
-  const [page, setPage] = useState("home");
+  const [path, setPath] = useState(() => window.location.pathname);
   const [form, setForm] = useState({
     birthDate: "",
     gender: "",
@@ -662,33 +871,66 @@ export default function App() {
   });
   const [answers, setAnswers] = useState(Array(questions.length).fill(undefined));
   const resultType = useMemo(() => calculateType(answers, form), [answers, form]);
+  const selectedType = getTypeById(getStoredTypeId());
+  const courseMatch = path.match(/^\/course\/(\d+)/);
+  const courseType = getTypeById(courseMatch?.[1] || selectedType.id);
+
+  useEffect(() => {
+    const handlePop = () => setPath(window.location.pathname);
+    window.addEventListener("popstate", handlePop);
+    return () => window.removeEventListener("popstate", handlePop);
+  }, []);
+
+  useEffect(() => {
+    if (courseMatch && !isPaymentCompleted()) {
+      navigate("/checkout", { replace: true });
+    }
+  }, [path]);
+
+  const navigate = (nextPath, options = {}) => {
+    if (window.location.pathname !== nextPath) {
+      if (options.replace) {
+        window.history.replaceState({}, "", nextPath);
+      } else {
+        window.history.pushState({}, "", nextPath);
+      }
+    }
+    setPath(nextPath);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const restart = () => {
     setAnswers(Array(questions.length).fill(undefined));
-    setPage("home");
+    navigate("/");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const go = (nextPage) => {
-    setPage(nextPage);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    navigate(nextPage);
   };
 
   return (
     <Shell step={go}>
-      {page === "home" && <Home onStart={() => go("input")} />}
-      {page === "input" && (
-        <InputPage form={form} setForm={setForm} onNext={() => go("quiz")} />
+      {path === "/" && <Home onStart={() => go("/input")} />}
+      {path === "/input" && (
+        <InputPage form={form} setForm={setForm} onNext={() => go("/quiz")} />
       )}
-      {page === "quiz" && (
+      {path === "/quiz" && (
         <QuizPage
           answers={answers}
           setAnswers={setAnswers}
-          onBack={() => go("input")}
-          onResult={() => go("result")}
+          onBack={() => go("/input")}
+          onResult={() => {
+            localStorage.setItem("tsukuyomiTypeId", String(resultType.id));
+            go("/result");
+          }}
         />
       )}
-      {page === "result" && <ResultPage type={resultType} onRestart={restart} />}
+      {path === "/result" && <ResultPage type={resultType} onRestart={restart} />}
+      {path === "/letter" && <LetterPage />}
+      {path === "/mini-course" && <MiniCoursePage selectedType={selectedType} navigate={navigate} />}
+      {path === "/checkout" && <CheckoutPage selectedType={selectedType} navigate={navigate} />}
+      {courseMatch && isPaymentCompleted() && <CoursePage type={courseType} />}
     </Shell>
   );
 }

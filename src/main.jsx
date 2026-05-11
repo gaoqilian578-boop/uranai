@@ -4,6 +4,8 @@ import App from "./App.jsx";
 import "./styles.css";
 import "./responsive-fixes.css";
 import "./typeVisualEnhance.js";
+import "./funnel.css";
+import "./funnelEnhance.js";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

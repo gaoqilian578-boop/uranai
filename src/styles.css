@@ -1370,6 +1370,99 @@ label small {
   margin-top: 18px;
 }
 
+.funnel-page .glass-panel,
+.funnel-page .reading-card,
+.course-page .glass-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.funnel-page .glass-panel::before,
+.course-list::before {
+  position: absolute;
+  inset: -20% -10% auto;
+  height: 220px;
+  pointer-events: none;
+  content: "";
+  background: radial-gradient(circle at 50% 50%, rgba(201, 243, 255, 0.12), transparent 62%);
+}
+
+.funnel-panel p,
+.course-list p {
+  color: var(--muted);
+  line-height: 1.9;
+}
+
+.letter-form {
+  display: grid;
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.thanks-box {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  margin-top: 28px;
+  padding: 18px;
+  color: var(--gold-soft);
+  background: rgba(215, 182, 111, 0.08);
+  border: 1px solid rgba(215, 182, 111, 0.24);
+  border-radius: 8px;
+}
+
+.thanks-box p {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.8;
+}
+
+.course-list {
+  margin-top: 16px;
+}
+
+.course-list ul {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  margin: 20px 0 24px;
+  list-style: none;
+}
+
+.course-list li {
+  position: relative;
+  padding-left: 22px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.course-list li::before {
+  position: absolute;
+  top: 0.72em;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  content: "";
+  background: var(--gold);
+  border-radius: 50%;
+  box-shadow: 0 0 16px rgba(215, 182, 111, 0.46);
+}
+
+.price-line {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 18px;
+  margin-bottom: 18px;
+  color: #fff8e6;
+  font-family: Inter, "Hiragino Sans", system-ui, sans-serif;
+  font-weight: 700;
+  background: rgba(215, 182, 111, 0.12);
+  border: 1px solid rgba(215, 182, 111, 0.32);
+  border-radius: 999px;
+}
+
 @media (min-width: 720px) {
   main {
     width: min(1120px, calc(100% - 56px));
