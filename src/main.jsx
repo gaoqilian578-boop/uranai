@@ -3,9 +3,8 @@ import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import "./styles.css";
 import "./responsive-fixes.css";
-import "./typeVisualEnhance.js";
+import "./flow.css";
 import "./funnel.css";
-import "./funnelEnhance.js";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

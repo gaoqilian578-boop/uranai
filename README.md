@@ -1,8 +1,16 @@
 # 月読 ─ tsukuyomi ─
 
-恋愛の占い診断をするリポジトリです。
+月読の流れ診断サイトです。
 
-Instagram・Threads・TikTok・Lemon8から流入する、恋愛命式16タイプ診断サイトです。
+SNSプロフィールから直接鑑定へ誘導する前に、恋愛・仕事運・金運の流れを無料診断で整理し、診断結果から LINE 追加、BASE 鑑定、高額個別相談へ自然に案内する Vite + React アプリです。
+
+## 診断ジャンル
+
+- 恋愛の流れ診断
+- 仕事運の流れ診断
+- 金運の流れ診断
+
+各結果ページでは診断タイプ、今の流れ、停滞や不安の理由、やめた方がいいこと、次の一手を表示します。BASE 商品リンクより前に LINE 追加導線を置き、購入前に離脱したユーザーも LINE へ戻れる構成にしています。
 
 ## セットアップ
 
@@ -29,11 +37,11 @@ npm run build
 
 ## URL設定
 
-深読み導線とLINE導線は `src/config.js` で変更できます。
+LINE導線は `src/config.js` で変更できます。BASE 商品リンクは `src/App.jsx` の `BASE_LINKS` にまとめています。
 
 ```js
 export const SITE_CONFIG = {
   NOTE_URL: "https://example.com/long-night-reading",
-  LINE_URL: "https://example.com/line",
+  LINE_URL: "https://lin.ee/tzVCsKH",
 };
 ```

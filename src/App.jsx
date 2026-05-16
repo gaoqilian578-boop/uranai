@@ -1,407 +1,340 @@
 import {
   ArrowLeft,
   ArrowRight,
-  CalendarDays,
+  BriefcaseBusiness,
   Check,
-  Clock3,
-  CreditCard,
+  Coins,
   Heart,
-  Mail,
+  LineChart,
   Moon,
   Sparkles,
   Stars,
-  UserRound,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SITE_CONFIG } from "./config";
 
-const answerOptions = [
-  { label: "はい", value: 3 },
-  { label: "どちらかといえばはい", value: 2 },
-  { label: "どちらかといえばいいえ", value: 1 },
-  { label: "いいえ", value: 0 },
-];
+const BASE_LINKS = {
+  loveEntry: "https://urana1tsuku.base.shop/items/144546773",
+  reunion: "https://urana1tsuku.base.shop/items/144554585",
+  support: "https://urana1tsuku.base.shop/items/144578572",
+  money: "https://urana1tsuku.base.shop/items/144576646",
+  work: "https://urana1tsuku.base.shop/items/144578308",
+};
 
-const questions = [
-  "既読がついたのに返信がないと、何度もスマホを見てしまう。",
-  "好きな人の態度が少し変わるだけで、不安になる。",
-  "恋愛では、相手に合わせすぎてしまう。",
-  "一度好きになると、なかなか気持ちを切り替えられない。",
-  "追わない方がいいと分かっていても、連絡したくなる。",
-  "束縛されると、好きでも苦しくなる。",
-  "恋愛していても、一人の時間はかなり必要。",
-  "好きになると、かなり一直線になりやすい。",
-  "限界になると、突然気持ちを切ってしまうことがある。",
-  "好きな人の何気ない一言を、何日も引きずる。",
-  "相手が疲れていると、自分が支えなきゃと思う。",
-  "曖昧な関係より、きちんとした関係を求める。",
-  "愛されているか、何度も確認したくなる。",
-  "復縁や再会を、どこかで信じてしまう。",
-  "「この人とは運命かも」と感じやすい。",
-  "相手の空気や違和感にすぐ気づく。",
-  "恋愛の始まりや終わりが、急に来ることが多い。",
-  "不安になると、SNSや過去のやり取りを見返してしまう。",
-  "恋愛で傷ついても、自分が悪かったのかもと考えやすい。",
-  "好きな人を忘れようとしても、夜になると思い出してしまう。",
-];
+const genreData = {
+  love: {
+    id: "love",
+    name: "恋愛の流れ診断",
+    shortName: "恋愛の流れ",
+    icon: Heart,
+    symbol: "月 / 女教皇 / カップ / 夜の余白",
+    description: "彼の沈黙、距離感、復縁、執着。今の恋で強くなっている感情の流れを静かに整理します。",
+    startLabel: "恋愛の流れを診断する",
+    questions: [
+      {
+        text: "今の恋について、近いものを選んでください",
+        options: [
+          { label: "彼の言動に心が揺れやすい", scores: { A: 3, B: 1 } },
+          { label: "焦って連絡したくなる", scores: { B: 3, D: 1 } },
+          { label: "関係性を見直したい", scores: { C: 3, A: 1 } },
+          { label: "少し動かしたい流れがある", scores: { D: 3, C: 1 } },
+          { label: "復縁や再会を考えている", scores: { C: 2, B: 2 } },
+          { label: "相手の本音が分からない", scores: { A: 2, B: 2 } },
+        ],
+      },
+      {
+        text: "今いちばん知りたいこと",
+        options: [
+          { label: "今の恋の流れ", scores: { A: 2, C: 1 } },
+          { label: "彼の本音の見え方", scores: { A: 2, B: 1 } },
+          { label: "LINEを送るべきか待つべきか", scores: { B: 3 } },
+          { label: "復縁や関係修復の可能性", scores: { C: 3 } },
+          { label: "次にどう動けばいいか", scores: { D: 3 } },
+          { label: "不安が強くなる理由", scores: { A: 3 } },
+        ],
+      },
+      {
+        text: "最近の感覚に近いもの",
+        options: [
+          { label: "夜になると考えすぎてしまう", scores: { A: 3 } },
+          { label: "動きたいけれど怖い", scores: { B: 2, D: 1 } },
+          { label: "同じ不安を繰り返している", scores: { C: 3 } },
+          { label: "小さなきっかけがあれば進めそう", scores: { D: 3 } },
+          { label: "待つ時間が苦しい", scores: { B: 3 } },
+          { label: "自分ばかり頑張っている気がする", scores: { C: 2, A: 1 } },
+        ],
+      },
+    ],
+    resultLabels: {
+      flow: "今の恋の流れ",
+      view: "彼の本音の見え方",
+      reason: "不安が強くなる理由",
+      avoid: "今やらない方がいいこと",
+      action: "あなたに必要な次の一手",
+    },
+    results: {
+      A: {
+        name: "感情整理タイプ",
+        summary: "彼の言動に心が揺れやすく、今はまず自分の感情を整える時期。",
+        flow: "今の恋は、相手の反応そのものよりも、そこに重なるあなたの不安が大きくなりやすい流れです。返信速度、言葉の温度、SNSの小さな動きが、夜になるほど強い意味を持って見えているかもしれません。",
+        view: "彼の本音は、今すぐひとつの答えに決めつけない方がよさそうです。沈黙や淡い反応の中には、冷めた気持ちだけでなく、余裕のなさや言葉にできない迷いが混ざることがあります。",
+        reason: "月のカードが示すように、見えない部分が多いほど想像は濃くなります。あなたは愛されていない証拠を探しているのではなく、安心できる材料を探している状態です。",
+        avoid: "不安のまま追いLINEを送ること、SNSで答え合わせをすること、彼の反応で自分の価値を決めることは今夜は避けてください。",
+        action: "まず「事実」と「想像」を分けましょう。返信が来ていないという事実と、冷めたかもしれないという想像を別々に書くだけで、心は少し戻ります。",
+      },
+      B: {
+        name: "待つ力タイプ",
+        summary: "焦って動くより、今は相手の反応を決めつけずに待つことが大切な時期。",
+        flow: "今の恋は、急いで動かすよりも、静かに余白を置くことで流れが整いやすい時期です。あなたが何かを送らないと終わる、という感覚は本物でも、今夜の衝動が最善とは限りません。",
+        view: "相手はあなたを拒絶しているというより、自分のペースや現実の都合を優先している可能性があります。反応の遅さだけで愛情の有無を測らない方が、関係を読み違えにくくなります。",
+        reason: "待つ時間が苦しいのは、沈黙の中で自分の存在が薄くなるように感じるからです。けれど、待つことは何もしないことではなく、自分の心を整える選択でもあります。",
+        avoid: "深夜の長文、返信催促、試すような一言、相手の罪悪感を刺激する言葉は避けましょう。",
+        action: "送る前に一晩置いてください。明日の自分が読んでも同じ温度で送れる言葉だけを残すことが、今の次の一手です。",
+      },
+      C: {
+        name: "関係見直しタイプ",
+        summary: "今の距離感や関係性を冷静に見直すことで、次の一手が見えてくる時期。",
+        flow: "今の恋は、戻すか進めるかの前に、関係の形を見直す流れに入っています。好きという気持ちだけではなく、安心できる関係か、自分ばかり削っていないかを見る時期です。",
+        view: "彼の本音を見る時は、言葉よりも行動の継続性を見てください。優しい瞬間があるかだけでなく、あなたを不安にした後に向き合う姿勢があるかが大切です。",
+        reason: "不安が強くなるのは、心のどこかで曖昧さや温度差に気づいているからかもしれません。月読の視点では、その違和感は責める材料ではなく、関係を整えるための合図です。",
+        avoid: "過去の優しさだけを根拠に戻ること、自分だけが我慢すればいいと考えること、同じ傷をなかったことにすることは避けてください。",
+        action: "この恋で安心できること、苦しくなることを左右に分けて書いてください。戻るかどうかより、戻った後の自分が穏やかかを見ます。",
+      },
+      D: {
+        name: "一歩前進タイプ",
+        summary: "小さな行動や言葉選びによって、流れが少しずつ動きやすい時期。",
+        flow: "今の恋は、大きく踏み込むよりも、小さくやさしい一手で流れが動きやすい時期です。すべてを確認するより、軽く温度を戻す言葉が合います。",
+        view: "相手や関係の流れには、完全に閉じていない余白がありそうです。ただし、期待だけで進めるのではなく、相手が受け取りやすい軽さを大切にしてください。",
+        reason: "不安が強くなるのは、動けそうな気配があるからこそ結果を急ぎたくなるためです。戦車のように走る前に、節制のように温度を整えることが流れを守ります。",
+        avoid: "一度の連絡で全部を解決しようとすること、重い確認、過去の話を一気に掘り返すことは避けてください。",
+        action: "短く、責めず、返事を強要しない一文を用意しましょう。動くなら、相手を試す言葉ではなく、自分の近況や穏やかな気持ちを軽く渡すことです。",
+      },
+    },
+    cta: {
+      title: "もっと深く、彼の本音を整理したい方へ",
+      body: "診断では、今の恋の流れを大きく見ることができます。ただ、彼の本音、今の距離感、LINEを送るべきか待つべきか、復縁や関係修復の流れは、あなたの状況によって変わります。もっと深く知りたい方は、個別鑑定で今の恋に必要な次の一手を整理できます。",
+      lineLabel: "LINEで恋の流れを相談する",
+      products: [
+        { label: "3,980円鑑定で見る", href: BASE_LINKS.loveEntry },
+        { label: "復縁・関係修復を深く見る", href: BASE_LINKS.reunion },
+      ],
+      premium: {
+        text: "一度の鑑定だけでは不安が残る方へ。彼との関係を7日間かけて整えたい場合は、LINE文の方向性や次の一手まで一緒に整理する7日間サポートもご用意しています。",
+        label: "7日間サポートを見る",
+        href: BASE_LINKS.support,
+      },
+    },
+  },
+  work: {
+    id: "work",
+    name: "仕事運の流れ診断",
+    shortName: "仕事運の流れ",
+    icon: BriefcaseBusiness,
+    symbol: "星 / 運命の輪 / 官星 / 転機",
+    description: "続けるか、変えるか、整えるか。今の仕事運と、あなたに合う働き方の流れを読みます。",
+    startLabel: "仕事運の流れを診断する",
+    questions: [
+      {
+        text: "今の仕事について、近いものを選んでください",
+        options: [
+          { label: "続けるべきか迷っている", scores: { A: 3, C: 1 } },
+          { label: "転職を考えている", scores: { B: 3, D: 1 } },
+          { label: "評価されにくいと感じる", scores: { A: 2, C: 2 } },
+          { label: "人間関係で疲れている", scores: { A: 3 } },
+          { label: "副業や独立が気になる", scores: { D: 3, B: 1 } },
+          { label: "自分に合う仕事が分からない", scores: { C: 3 } },
+        ],
+      },
+      {
+        text: "今いちばん知りたいこと",
+        options: [
+          { label: "今の仕事を続けるべきか", scores: { A: 2, C: 1 } },
+          { label: "転職のタイミング", scores: { B: 3 } },
+          { label: "適職や向いている働き方", scores: { C: 3 } },
+          { label: "評価や収入の流れ", scores: { C: 2, B: 1 } },
+          { label: "今後の転機", scores: { B: 3 } },
+          { label: "今取るべき行動", scores: { D: 3 } },
+        ],
+      },
+      {
+        text: "最近の感覚に近いもの",
+        options: [
+          { label: "頑張っているのに報われない", scores: { A: 3 } },
+          { label: "停滞している感じがする", scores: { A: 2, B: 1 } },
+          { label: "動きたいけど怖い", scores: { B: 2, D: 1 } },
+          { label: "環境を変えたい", scores: { B: 3 } },
+          { label: "やる気が戻らない", scores: { A: 2, C: 1 } },
+          { label: "新しいことを始めたい", scores: { D: 3 } },
+        ],
+      },
+    ],
+    resultLabels: {
+      flow: "今の仕事運の流れ",
+      view: "停滞しやすい原因",
+      reason: "あなたに合う働き方の傾向",
+      avoid: "今動くべきか、整えるべきか",
+      action: "仕事で必要な次の一手",
+    },
+    results: {
+      A: {
+        name: "停滞整理タイプ",
+        summary: "今は無理に動くより、現状の違和感を整理する時期。",
+        flow: "今の仕事運は、勢いよく外へ動くより、内側の違和感を言語化する流れです。停滞に見えても、実は何を続け、何を変えるかを見極めるための静かな時間かもしれません。",
+        view: "停滞しやすい原因は、頑張り方と評価される場所が少しずれていることにありそうです。努力が足りないのではなく、力を使う方向や環境との相性を見直す必要があります。",
+        reason: "あなたは、人の空気を読みながら丁寧に積み上げる働き方に強みがあります。ただし、我慢を続けるほど本音が見えにくくなり、急にすべてを投げ出したくなることがあります。",
+        avoid: "疲れ切った勢いで退職や転職を決めること、今の自分を責めて無理に走ることは避けてください。",
+        action: "まず、今の仕事で消耗していること、まだ残したいこと、変えたいことを三つに分けて書き出してください。",
+      },
+      B: {
+        name: "転機接近タイプ",
+        summary: "近いうちに仕事の流れが変わりやすい時期。",
+        flow: "今の仕事運には、運命の輪のように流れが切り替わる気配があります。すぐに結果を決めるより、情報、出会い、配置換え、転職の可能性を静かに集める時期です。",
+        view: "停滞の原因は、今の場所にあなたの成長速度が合わなくなっていることかもしれません。環境を変えたい感覚は逃げではなく、次の器を探す合図の場合があります。",
+        reason: "あなたは変化の中で力を取り戻しやすい傾向があります。固定された役割より、新しい課題や裁量がある場所で呼吸が深くなるタイプです。",
+        avoid: "焦りだけで求人に飛びつくこと、条件を見ずに勢いで決めること、今の職場への怒りを次の選択理由にすることは避けましょう。",
+        action: "今日は転職サイトを見るだけで終わらせず、譲れない条件を三つ書いてください。転機は準備した人のもとで現実になりやすくなります。",
+      },
+      C: {
+        name: "適職再確認タイプ",
+        summary: "自分に合う働き方や強みを見直す時期。",
+        flow: "今の仕事運は、外側の肩書きより、あなたの星が自然に力を出せる場所を見直す流れです。向いていないのではなく、向いている部分をまだ使い切れていない可能性があります。",
+        view: "停滞しやすい原因は、自分の強みを当たり前だと思いすぎていることです。人を整える力、細部に気づく力、言葉にする力など、あなたにとって普通のことが仕事の価値になる場合があります。",
+        reason: "あなたは、安定と意味の両方がある働き方で力を出しやすいタイプです。評価されるためだけでは長続きしにくく、誰かの役に立つ感覚や納得感が必要です。",
+        avoid: "苦手を克服することだけに時間を使うこと、周りと比べて自分の価値を下げることは避けてください。",
+        action: "過去に褒められたこと、頼まれやすいこと、疲れにくい作業を書き出しましょう。適職はその中に静かに隠れています。",
+      },
+      D: {
+        name: "挑戦準備タイプ",
+        summary: "副業・転職・新しい挑戦に向けて準備を始める時期。",
+        flow: "今の仕事運は、新しい挑戦へ向けて小さく火を灯す流れです。いきなり大きく変えるより、試す、学ぶ、整えることで流れが安定します。",
+        view: "停滞の原因は、行動したい気持ちがあるのに、まだ現実の手順が見えていないことです。怖さは才能がないサインではなく、未知の場所へ向かう前の自然な緊張です。",
+        reason: "あなたは、自分で選んだ行動にエネルギーが戻るタイプです。副業や転職、新しい役割など、主体性を持てる選択が運を動かしやすくします。",
+        avoid: "準備ゼロで大きな決断をすること、学びだけで満足して実験しないこと、完璧になるまで動かないことは避けましょう。",
+        action: "今週できる小さな挑戦を一つ決めてください。情報収集、ポートフォリオ作成、相談、応募の下書きなど、月の一歩で十分です。",
+      },
+    },
+    cta: {
+      title: "もっと深く、仕事の転機を整理したい方へ",
+      body: "診断では、今の仕事運の流れを大きく見ることができます。ただ、今の仕事を続けるべきか、転職や副業のタイミング、あなたに合う働き方や適職の傾向は、具体的な状況によって変わります。もっと深く知りたい方は、個別鑑定で今の仕事運と次の一手を整理できます。",
+      lineLabel: "LINEで仕事の流れを相談する",
+      products: [{ label: "仕事運鑑定で深く見る", href: BASE_LINKS.work }],
+    },
+  },
+  money: {
+    id: "money",
+    name: "金運の流れ診断",
+    shortName: "金運の流れ",
+    icon: Coins,
+    symbol: "金星 / 財星 / 巡り / 豊かさ",
+    description: "お金が残らない不安、収入の流れ、受け取る力。今の金運を静かに整える診断です。",
+    startLabel: "金運の流れを診断する",
+    questions: [
+      {
+        text: "今のお金の悩みに近いものを選んでください",
+        options: [
+          { label: "お金がなかなか残らない", scores: { A: 3 } },
+          { label: "収入が不安定", scores: { B: 2, D: 1 } },
+          { label: "将来のお金が不安", scores: { A: 2, C: 1 } },
+          { label: "使いすぎてしまう", scores: { A: 3 } },
+          { label: "副業や収入アップが気になる", scores: { B: 3, D: 1 } },
+          { label: "金運を整えたい", scores: { C: 2, D: 1 } },
+        ],
+      },
+      {
+        text: "今いちばん知りたいこと",
+        options: [
+          { label: "今の金運の状態", scores: { A: 2, C: 1 } },
+          { label: "お金が出ていく原因", scores: { A: 3 } },
+          { label: "収入につながる流れ", scores: { B: 3 } },
+          { label: "金運上昇のタイミング", scores: { D: 3 } },
+          { label: "仕事とお金のつながり", scores: { C: 2, B: 1 } },
+          { label: "今取るべき行動", scores: { D: 2, B: 1 } },
+        ],
+      },
+      {
+        text: "最近の感覚に近いもの",
+        options: [
+          { label: "頑張ってもお金が残らない", scores: { A: 3 } },
+          { label: "不安でお金を使ってしまう", scores: { A: 2, C: 1 } },
+          { label: "収入を増やしたい", scores: { B: 3 } },
+          { label: "豊かさを受け取りたい", scores: { C: 3 } },
+          { label: "お金の流れを変えたい", scores: { D: 3 } },
+          { label: "今後の金運が気になる", scores: { D: 2, C: 1 } },
+        ],
+      },
+    ],
+    resultLabels: {
+      flow: "今の金運の流れ",
+      view: "お金の巡りが滞る原因",
+      reason: "収入につながる可能性",
+      avoid: "今やめた方がいいお金の使い方",
+      action: "金運を整える次の一手",
+    },
+    results: {
+      A: {
+        name: "お金の巡り停滞タイプ",
+        summary: "今はお金の流れが滞りやすく、使い方の見直しが必要な時期。",
+        flow: "今の金運は、入る力よりも出ていく流れを整えることが先になりやすい時期です。お金がないというより、何に流れているかが見えにくくなっているかもしれません。",
+        view: "巡りが滞る原因は、不安を埋めるための支出や、疲れを紛らわせる使い方にありそうです。買う瞬間は少し楽になっても、その後に不安が戻る支出は金運を濁らせます。",
+        reason: "収入につながる可能性は、まず固定費と小さな漏れを整えた後に見えやすくなります。財星は、派手な一発よりも整った器にお金が残ることを教えます。",
+        avoid: "不安な夜の衝動買い、見栄のための支出、使途が分からないままのサブスク継続は見直してください。",
+        action: "今日使ったお金を責めずに書き出しましょう。削るためではなく、お金の流れを見える場所へ戻すためです。",
+      },
+      B: {
+        name: "収入準備タイプ",
+        summary: "収入につながる行動の準備を始める時期。",
+        flow: "今の金運は、すぐ増えるというより、収入につながる種をまく流れです。副業、学び、発信、スキルの棚卸しが未来のお金の入口になります。",
+        view: "巡りが滞る原因は、受け取る道がまだ一本に限られていることです。今の収入源だけで安心を作ろうとすると、不安が大きくなりやすいかもしれません。",
+        reason: "あなたの経験や言葉、得意なことが収入につながる可能性があります。ただし、金運は準備のない期待ではなく、現実的な小さな行動で動きます。",
+        avoid: "一気に稼げる話に飛びつくこと、投資や副業で確実な利益を期待すること、焦りだけで高額な契約をすることは避けましょう。",
+        action: "収入に変えられそうな経験を三つ書き出してください。今週はそのうち一つについて、調べる、相談する、下書きするところまでで十分です。",
+      },
+      C: {
+        name: "豊かさ受け取りタイプ",
+        summary: "自分の価値や働き方を整えることで金運が動きやすい時期。",
+        flow: "今の金運は、自分の価値を低く見積もらないことがテーマです。受け取ることに罪悪感があると、収入や豊かさの入口を自分で狭めてしまうことがあります。",
+        view: "巡りが滞る原因は、遠慮しすぎることや、安く引き受けすぎることにあるかもしれません。優しさと自己犠牲を混ぜないことが大切です。",
+        reason: "収入につながる可能性は、あなたが自然にできることを価値として差し出す時に開きます。丁寧さ、聞く力、整える力、続ける力は金運の器になります。",
+        avoid: "自分の価値を下げる値引き、頼まれたら断れない支出、必要以上に相手へ合わせるお金の使い方は避けましょう。",
+        action: "自分が受け取っていいものを一つ決めてください。報酬、休息、感謝、サポート。豊かさはお金だけでなく、受け取る許可から動きます。",
+      },
+      D: {
+        name: "金運転機タイプ",
+        summary: "お金の流れが変わる前触れが出やすい時期。",
+        flow: "今の金運は、これまでのお金の流れを変える前触れが出やすい時期です。収入、仕事、支出の優先順位が少しずつ入れ替わるかもしれません。",
+        view: "巡りが滞る原因は、古い使い方や働き方を続けていることにありそうです。以前は合っていた方法が、今のあなたには少し窮屈になっています。",
+        reason: "収入につながる可能性は、仕事運との接点にあります。新しい役割、副業、学び直し、発信など、お金の入口を増やす準備が運を動かします。",
+        avoid: "流れが変わる時期に、怖さだけで何も見ないこと。逆に、保証のない話へ勢いで飛び込むことも避けてください。",
+        action: "今月のお金の流れを一つだけ変えてください。固定費の見直し、収入の種まき、不要な支出を止めること。小さな変更が転機の合図になります。",
+      },
+    },
+    cta: {
+      title: "もっと深く、お金の流れを整理したい方へ",
+      body: "診断では、今の金運の流れを大きく見ることができます。ただ、お金が残りにくい理由、収入につながる流れ、仕事や副業との関係、金運が動きやすいタイミングは、具体的な状況によって変わります。もっと深く知りたい方は、個別鑑定で今のお金の巡りと次の一手を整理できます。",
+      lineLabel: "LINEでお金の流れを相談する",
+      products: [{ label: "金運鑑定で深く見る", href: BASE_LINKS.money }],
+    },
+  },
+};
 
-const typeData = [
-  {
-    id: 1,
-    name: "月影依存タイプ",
-    symbol: "月 / 隠者 / 癸水",
-    short: "不安の奥に、深く愛したい願いを持つ月影の人。",
-    essence:
-      "あなたの恋は、相手との距離が少し揺れるだけで心の水面が波立ちます。依存に見える感情の奥には、愛される確かさを丁寧に感じたい繊細さがあります。",
-    habit:
-      "返信速度や言葉の温度を読みすぎて、自分の価値まで相手の反応で測りやすい傾向があります。",
-    night:
-      "既読のまま時間が止まった夜。スマホの光だけが明るく、心だけが過去の会話に戻るとき。",
-    match:
-      "安心を言葉と行動で渡してくれる人。急かさず、でも曖昧に逃げない恋が合います。",
-    message:
-      "あなたの不安は弱さではありません。愛を深く受け取る器が、まだ静かな形を探しているだけです。",
-    palette: ["#d9f3ff", "#b4c8ff", "#d6b56d"],
-  },
-  {
-    id: 2,
-    name: "黒月執着タイプ",
-    symbol: "黒月 / 悪魔 / 壬水",
-    short: "忘れたい恋ほど、魂の奥に残してしまう人。",
-    essence:
-      "黒月執着タイプは、終わったはずの恋にも意味を探し続けます。手放せないのは相手そのものだけでなく、その恋で確かに生きていた自分です。",
-    habit:
-      "相手の沈黙、SNS、過去の言葉をつなぎ合わせて、まだ残っている可能性を探してしまいます。",
-    night:
-      "忘れると決めたはずなのに、深夜に名前を検索してしまう夜。",
-    match:
-      "強い感情を否定せず、境界線を穏やかに保てる人。濃さより誠実さが鍵です。",
-    message:
-      "執着は、愛が壊れた跡に残る影です。影を責めず、少しずつ月明かりへ連れていきましょう。",
-    palette: ["#cfeaff", "#6e7da8", "#b79253"],
-  },
-  {
-    id: 3,
-    name: "霧夜沈黙タイプ",
-    symbol: "霧 / 月 / 辛金",
-    short: "言えない気持ちを、静かな沈黙の中で育てる人。",
-    essence:
-      "本当はたくさん感じているのに、言葉にした瞬間に壊れそうで黙ってしまうタイプです。恋の中で自分を守るために、霧をまといます。",
-    habit:
-      "平気なふりをしながら、内側では何度も傷ついた場面を反芻しがちです。",
-    night:
-      "言えばよかった言葉と、言わなくてよかった言葉の間で眠れない夜。",
-    match:
-      "沈黙を責めず、時間をかけて本音を待てる人。やさしい会話の余白が必要です。",
-    message:
-      "沈黙の中にも、あなたの愛は確かにあります。話せる速さで、心を渡せば大丈夫です。",
-    palette: ["#e5f7ff", "#9ca9bc", "#d3b574"],
-  },
-  {
-    id: 4,
-    name: "審判再縁タイプ",
-    symbol: "審判 / 再会 / 甲木",
-    short: "終わりの中に、もう一度始まる音を聞く人。",
-    essence:
-      "あなたは別れや距離の中にも、まだ続く物語を感じやすい人です。再会を信じる力は、過去に囚われる弱さではなく、関係の意味を見抜く感性です。",
-    habit:
-      "区切りがついた関係でも、何かのきっかけで再びつながる未来を考えます。",
-    night:
-      "偶然の通知、似た香り、思い出の場所で、心が一瞬だけ戻る夜。",
-    match:
-      "過去を丁寧に扱い、未来を現実的に作れる人。言葉で区切りをつけられる恋が合います。",
-    message:
-      "再縁は、待つだけではなく整えることで近づきます。あなた自身が新しい月になることから始まります。",
-    palette: ["#dff7ff", "#86b5c7", "#d8bd76"],
-  },
-  {
-    id: 5,
-    name: "風財自由タイプ",
-    symbol: "風 / 正財 / 庚金",
-    short: "愛していても、自分の風を失いたくない人。",
-    essence:
-      "恋をしても、あなたの中には自由に流れる風があります。近づきたいのに縛られると苦しくなる、繊細な独立心を持つタイプです。",
-    habit:
-      "相手の期待が強くなるほど、無意識に距離を取りたくなることがあります。",
-    night:
-      "好きなのに返事をする気力がなく、ひとりの静けさへ逃げ込みたい夜。",
-    match:
-      "信頼でつながり、管理しない人。互いの世界を尊重できる恋が長く続きます。",
-    message:
-      "距離は愛の薄さではありません。あなたにとって余白は、愛を澄ませるための呼吸です。",
-    palette: ["#d8f7ff", "#a8d7df", "#c9ad68"],
-  },
-  {
-    id: 6,
-    name: "星孤比肩タイプ",
-    symbol: "星 / 比肩 / 乙木",
-    short: "ひとりで立つ強さと、愛されたい願いが共存する人。",
-    essence:
-      "あなたは誰かに寄りかかるより、自分の足で立とうとします。その強さの奥で、ほんとうは静かに選ばれたい願いを抱えています。",
-    habit:
-      "甘えたい気持ちを隠して、何でもない顔をしてしまうことがあります。",
-    night:
-      "頼ればよかったのに、強いふりをした自分に少し疲れる夜。",
-    match:
-      "あなたの自立を尊重しながら、必要なときに手を伸ばせる人。",
-    message:
-      "強さは孤独の証ではありません。あなたが誰かを選ぶように、あなたも選ばれていいのです。",
-    palette: ["#e7fbff", "#8aa1d0", "#d2b36c"],
-  },
-  {
-    id: 7,
-    name: "火星戦車タイプ",
-    symbol: "火星 / 戦車 / 丙火",
-    short: "好きになった瞬間、心が真っ直ぐ走り出す人。",
-    essence:
-      "恋の始まりに強い熱を持つタイプです。勢いは魅力ですが、相手の速度とずれたとき、焦りや不安になって表れます。",
-    habit:
-      "気持ちが高まるほど、相手からの反応を急ぎたくなります。",
-    night:
-      "送った言葉が強すぎたかもしれないと、何度も画面を見返す夜。",
-    match:
-      "情熱を受け止めつつ、落ち着いたペースを作れる人。",
-    message:
-      "あなたの熱は美しいものです。急がず灯せば、その火は相手を照らす光になります。",
-    palette: ["#f1fbff", "#a5c5e8", "#d3ad62"],
-  },
-  {
-    id: 8,
-    name: "死神リセットタイプ",
-    symbol: "死神 / 断絶 / 丁火",
-    short: "限界を超えると、静かにすべてを終わらせる人。",
-    essence:
-      "我慢を重ねたあと、ある瞬間に心の扉を閉めるタイプです。冷たいのではなく、傷ついた自分を守るためのリセットです。",
-    habit:
-      "限界まで言わずに耐え、突然連絡を断つ、気持ちを切るという形で終わらせがちです。",
-    night:
-      "もう戻れないと分かっているのに、終わらせた自分にも痛みを感じる夜。",
-    match:
-      "小さな違和感を早めに話せる人。衝突しても関係を壊さず調整できる恋が合います。",
-    message:
-      "終わらせる力は、再生の力でもあります。次は壊れる前に、あなたの痛みを言葉にしていい。",
-    palette: ["#dceeff", "#77849a", "#c19e57"],
-  },
-  {
-    id: 9,
-    name: "傷官硝子タイプ",
-    symbol: "硝子 / 傷官 / 辛金",
-    short: "小さな一言で、心に細いひびが入る人。",
-    essence:
-      "感受性が鋭く、言葉の裏にある温度まで感じ取ります。傷つきやすさは、世界を細やかに読む才能の裏側です。",
-    habit:
-      "相手の何気ない一言を、自分への評価として受け取りやすい傾向があります。",
-    night:
-      "たった一文を何度も読み返し、意味を探して眠れなくなる夜。",
-    match:
-      "言葉を雑に扱わず、誤解があれば丁寧に解いてくれる人。",
-    message:
-      "硝子の心は弱いのではなく、光を通すほど透明です。守りながら愛していいのです。",
-    palette: ["#f4fdff", "#b9d6de", "#d9bd78"],
-  },
-  {
-    id: 10,
-    name: "女帝献身タイプ",
-    symbol: "女帝 / 食神 / 己土",
-    short: "愛するほど、相手を包み込もうとする人。",
-    essence:
-      "あなたは恋の中で、相手を癒し、支え、満たそうとします。その豊かさが美点である一方、自分の寂しさを後回しにしやすいタイプです。",
-    habit:
-      "相手が疲れていると、自分の不安より相手の都合を優先してしまいます。",
-    night:
-      "大丈夫と言ったあと、本当は自分が抱きしめられたかったと気づく夜。",
-    match:
-      "受け取るだけでなく、あなたにも惜しみなく返せる人。",
-    message:
-      "献身は、あなたが満たされているときにもっと美しくなります。自分の器にも水を注いでください。",
-    palette: ["#eefaff", "#c2c7b5", "#d8b568"],
-  },
-  {
-    id: 11,
-    name: "教皇正財タイプ",
-    symbol: "教皇 / 正財 / 戊土",
-    short: "曖昧さより、誠実な約束を求める人。",
-    essence:
-      "恋愛に安心できる形を求めるタイプです。関係性、約束、言葉の責任が整っているほど、あなたの愛は穏やかに深まります。",
-    habit:
-      "曖昧な態度が続くと、好きでも心の土台が崩れやすくなります。",
-    night:
-      "私たちは何なのだろうと、答えのない関係に胸が沈む夜。",
-    match:
-      "誠実に関係を定義し、約束を日常で守れる人。",
-    message:
-      "形を求めることは重さではありません。あなたの心が安心して咲くための器です。",
-    palette: ["#e8f7ff", "#afb9a8", "#d4b46b"],
-  },
-  {
-    id: 12,
-    name: "白花養愛タイプ",
-    symbol: "白花 / 節制 / 乙木",
-    short: "ゆっくり育つ愛に、本当の安心を見つける人。",
-    essence:
-      "激しい恋より、少しずつ信頼を育てる恋で開花します。相手に合わせるやさしさがあり、穏やかな時間の中で魅力が増すタイプです。",
-    habit:
-      "相手のペースを大切にしすぎて、自分の望みを小さくしてしまうことがあります。",
-    night:
-      "言いたいことを飲み込んで、やさしさだけを残してしまった夜。",
-    match:
-      "急がず、関係を育てることを楽しめる人。穏やかさと対話が鍵です。",
-    message:
-      "あなたの愛は、焦らなくても届きます。白い花が夜に開くように、静かな速度を信じて。",
-    palette: ["#f8ffff", "#cbded3", "#d9bf7c"],
-  },
-  {
-    id: 13,
-    name: "星灯希望タイプ",
-    symbol: "星 / 希望 / 甲木",
-    short: "傷ついても、未来の光をどこかで信じる人。",
-    essence:
-      "あなたは恋で傷ついても、完全には希望を手放しません。理想を持つ力があり、その光が自分を立て直す道しるべになります。",
-    habit:
-      "つらい状況でも、いつか変わるかもしれないと可能性を見続けます。",
-    night:
-      "もう無理かもしれないと思いながら、少しだけ明日を待つ夜。",
-    match:
-      "理想を笑わず、現実の行動で希望を支えてくれる人。",
-    message:
-      "希望は執着とは違います。あなたを明るい場所へ連れていく星だけを選んでください。",
-    palette: ["#f1fcff", "#9fc4ef", "#d7bb72"],
-  },
-  {
-    id: 14,
-    name: "月輪再会タイプ",
-    symbol: "月輪 / 運命 / 癸水",
-    short: "離れても、めぐり直す縁を感じやすい人。",
-    essence:
-      "あなたは恋を直線ではなく、満ち欠けのように捉えます。離れる時間にも意味を感じ、再び交わる可能性を静かに抱きます。",
-    habit:
-      "終わった関係でも、周期や偶然に意味を見つけやすい傾向があります。",
-    night:
-      "同じ月を見ているかもしれないと、理由もなく胸が鳴る夜。",
-    match:
-      "縁を大切にしつつ、現在の選択にも責任を持てる人。",
-    message:
-      "めぐる縁も、戻らない縁も、あなたを深くします。月は欠けても、消えたわけではありません。",
-    palette: ["#e8f8ff", "#9daee3", "#d6bb73"],
-  },
-  {
-    id: 15,
-    name: "女教皇直感タイプ",
-    symbol: "女教皇 / 偏印 / 壬水",
-    short: "言葉になる前の違和感を、静かに受け取る人。",
-    essence:
-      "空気の変化、相手の沈黙、言葉にならない距離を敏感に察知します。直感が強いぶん、不安と予感の境界が揺れやすいタイプです。",
-    habit:
-      "証拠がなくても、何か違うと感じると心が落ち着かなくなります。",
-    night:
-      "理由は言えないのに、関係の温度が変わった気がして眠れない夜。",
-    match:
-      "隠しごとをせず、感じた違和感を対話で確かめさせてくれる人。",
-    message:
-      "直感はあなたの月明かりです。ただし、不安の霧と混ざったときは、事実の星も一緒に見てください。",
-    palette: ["#e4f7ff", "#8fa0c9", "#d8be77"],
-  },
-  {
-    id: 16,
-    name: "運命輪転タイプ",
-    symbol: "運命の輪 / 変化 / 丙火",
-    short: "恋の始まりも終わりも、突然めぐってくる人。",
-    essence:
-      "あなたの恋は、予想外の出会いや急な展開に動かされやすいタイプです。流れを読む力があり、変化の中で大きく人生が動きます。",
-    habit:
-      "気持ちや状況が急に変わり、自分でも追いつけないことがあります。",
-    night:
-      "昨日までの関係が、今日から別のものになったと感じる夜。",
-    match:
-      "変化を恐れず、でも関係の軸を一緒に作れる人。",
-    message:
-      "運命はあなたを振り回すためではなく、目覚めさせるために回ります。流れの中で、自分の選択を忘れずに。",
-    palette: ["#eaf8ff", "#92bbd7", "#d8af62"],
-  },
-];
-
-const scoringGroups = [
-  [0, 1, 4, 12, 17],
-  [3, 9, 13, 19],
-  [5, 6, 8, 16],
-  [2, 10, 11, 18],
-  [7, 14, 15],
-];
-
-const courseBullets = [
-  "恋愛命式タイプ深掘り",
-  "執着が強くなる理由",
-  "彼の沈黙の読み方",
-  "今やめた方がいい行動",
-  "心を戻す小さなワーク",
-  "月読メッセージ",
-];
-
-function getStoredTypeId() {
-  if (typeof window === "undefined") return 1;
-  return Number.parseInt(localStorage.getItem("tsukuyomiTypeId") || "1", 10) || 1;
+function getInitialPath() {
+  if (typeof window === "undefined") return "/";
+  return window.location.pathname;
 }
 
-function getTypeById(typeId) {
-  return typeData.find((type) => type.id === Number(typeId)) || typeData[0];
+function getScoreResult(genre, answers) {
+  const scores = { A: 0, B: 0, C: 0, D: 0 };
+  genre.questions.forEach((question, index) => {
+    const selected = question.options[answers[index]];
+    if (!selected) return;
+    Object.entries(selected.scores).forEach(([key, value]) => {
+      scores[key] += value;
+    });
+  });
+  return Object.entries(scores).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0];
 }
 
-function isPaymentCompleted() {
-  if (typeof window === "undefined") return false;
-  return localStorage.getItem("paymentCompleted") === "true";
-}
-
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
-
-function getBirthInfluence(dateValue = "") {
-  if (!dateValue) return 0;
-  const date = new Date(`${dateValue}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return 0;
-  return (date.getFullYear() + date.getMonth() + 1 + date.getDate()) % 16;
-}
-
-function calculateType(answers, form) {
-  const groupScores = scoringGroups.map((group) =>
-    group.reduce((sum, questionIndex) => sum + (answers[questionIndex] ?? 0), 0)
-  );
-  const weighted =
-    groupScores[0] * 2 +
-    groupScores[1] * 3 +
-    groupScores[2] * 5 +
-    groupScores[3] * 7 +
-    groupScores[4] * 11 +
-    getBirthInfluence(form.birthDate) +
-    (form.partnerBirthDate ? getBirthInfluence(form.partnerBirthDate) : 0) +
-    (form.birthTime ? 3 : 0);
-  return typeData[weighted % typeData.length];
-}
-
-function TypeVisual({ type, large = false }) {
-  const [a, b, c] = type.palette;
-  return (
-    <div className={`type-visual type-visual-${type.id} ${large ? "type-visual-large" : ""}`}>
-      <div className="orb" style={{ "--a": a, "--b": b }} />
-      <div className="moon-ring" style={{ borderColor: c }} />
-      <div className="motif">
-        <span />
-        <span />
-        <span />
-      </div>
-      <div className="tarot-frame" />
-      <div className="constellation">
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
-      <div className="type-number">{String(type.id).padStart(2, "0")}</div>
-    </div>
-  );
-}
-
-function Shell({ children, step }) {
+function Shell({ children, navigate }) {
   return (
     <div className="site-shell">
       <div className="night-sky" aria-hidden="true">
@@ -410,7 +343,7 @@ function Shell({ children, step }) {
         <span />
       </div>
       <header className="site-header">
-        <button className="brand" onClick={() => step("/")} type="button">
+        <button className="brand" onClick={() => navigate("/")} type="button">
           <Moon size={18} />
           <span>月読</span>
           <small>tsukuyomi</small>
@@ -421,163 +354,111 @@ function Shell({ children, step }) {
   );
 }
 
-function Home({ onStart }) {
+function Home({ startGenre }) {
   return (
     <main>
-      <section className="hero">
-        <div className="hero-visual" aria-hidden="true">
+      <section className="flow-hero">
+        <div className="flow-moon-visual" aria-hidden="true">
           <div className="full-moon" />
           <div className="glass-arc arc-one" />
           <div className="glass-arc arc-two" />
           <div className="floating-card card-moon">月</div>
           <div className="floating-card card-tarot">XVIII</div>
         </div>
-        <div className="hero-copy">
-          <p className="eyebrow">恋愛命式16タイプ診断</p>
-          <h1 className="hero-title">あなたの恋は、<br />どの月に<br />支配されているか。</h1>
-          <p className="lead">
-            既読がつくだけで苦しくなる夜。忘れたいのに忘れられない恋。
-            心が彼に戻ってしまう時間。その感情には、ちゃんと理由があります。
+        <div className="hero-copy flow-copy">
+          <p className="eyebrow">月読 ─ tsukuyomi ─</p>
+          <h1 className="hero-title">月読の流れ診断</h1>
+          <p className="lead">夜になると、考え込んでしまう人へ。</p>
+          <p>
+            恋愛、仕事、お金。今のあなたが抱えている悩みの流れを、
+            月読が静かに読み解きます。
           </p>
-          <button className="primary-button" onClick={onStart} type="button">
-            診断を始める
-            <ArrowRight size={18} />
-          </button>
+          <p>まずは、今いちばん気になるテーマを選んでください。</p>
         </div>
       </section>
 
-      <section className="intro-grid">
-        <article>
-          <Sparkles size={22} />
-          <h2>感情と運命を読む場所</h2>
-          <p>
-            四柱推命の命式、タロットの象徴、恋愛感情の癖から、あなたの恋愛タイプを16種類に分けて読み解きます。
-          </p>
-        </article>
-        <article>
-          <Stars size={22} />
-          <h2>当てるためではなく</h2>
-          <p>
-            なぜ苦しくなるのか。なぜ同じ恋を繰り返すのか。なぜ彼を忘れられないのか。その理由を静かに見つめます。
-          </p>
-        </article>
-        <article>
-          <Heart size={22} />
-          <h2>眠れない夜に</h2>
-          <p>
-            恋の不安をひとりで責めないために。月読は、あなたの心がどこで揺れるのかをそっと照らします。
-          </p>
-        </article>
+      <section className="genre-grid" aria-label="診断ジャンル">
+        {Object.values(genreData).map((genre) => (
+          <GenreCard key={genre.id} genre={genre} onStart={() => startGenre(genre.id)} />
+        ))}
       </section>
 
-      <section className="world-section">
-        <p className="eyebrow">tsukuyomi world</p>
-        <h2>月読 ─ tsukuyomi ─</h2>
+      <section className="world-section flow-world">
+        <p className="eyebrow">quiet reading</p>
+        <h2>当てるより、流れを整理するために。</h2>
         <p>
-          黒い夜、青白い月光、金の象徴。タロットの静かな絵柄と、命式に眠る感情の癖を重ねて、
-          恋の輪郭を読み解く無料診断です。
+          月読の流れ診断は、タロットと四柱推命の象徴を借りて、
+          今の感情や状況をやさしく言葉にする無料診断です。
+          未来を断定するものではなく、次の一手を見つけるための静かな入口です。
         </p>
       </section>
     </main>
   );
 }
 
-function InputPage({ form, setForm, onNext }) {
-  const canProceed = form.birthDate && form.gender;
+function GenreCard({ genre, onStart }) {
+  const Icon = genre.icon;
   return (
-    <main className="narrow-page">
-      <section className="glass-panel input-panel">
-        <p className="eyebrow">first moon</p>
-        <h1>診断前に、あなたの月を教えてください。</h1>
-        <div className="field-stack">
-          <label>
-            <span><CalendarDays size={16} /> 生年月日</span>
-            <input
-              type="date"
-              value={form.birthDate}
-              onChange={(event) => setForm({ ...form, birthDate: event.target.value })}
-            />
-          </label>
-          <label>
-            <span><UserRound size={16} /> 性別</span>
-            <select
-              value={form.gender}
-              onChange={(event) => setForm({ ...form, gender: event.target.value })}
-            >
-              <option value="">選択してください</option>
-              <option value="女性">女性</option>
-              <option value="男性">男性</option>
-              <option value="その他">その他</option>
-              <option value="回答しない">回答しない</option>
-            </select>
-          </label>
-          <label>
-            <span><Clock3 size={16} /> 出生時間</span>
-            <input
-              type="time"
-              value={form.birthTime}
-              onChange={(event) => setForm({ ...form, birthTime: event.target.value })}
-            />
-            <small>分からない場合は空欄でも大丈夫です</small>
-          </label>
-          <label>
-            <span><Heart size={16} /> 彼の生年月日</span>
-            <input
-              type="date"
-              value={form.partnerBirthDate}
-              onChange={(event) => setForm({ ...form, partnerBirthDate: event.target.value })}
-            />
-          </label>
-        </div>
-        <button className="primary-button wide" disabled={!canProceed} onClick={onNext} type="button">
-          20問診断へ進む
-          <ArrowRight size={18} />
-        </button>
-      </section>
-    </main>
+    <article className={`genre-card genre-card-${genre.id}`}>
+      <div className="genre-orbit" aria-hidden="true">
+        <Moon size={26} />
+        <Stars size={18} />
+      </div>
+      <div className="genre-icon">
+        <Icon size={24} />
+      </div>
+      <p className="eyebrow">{genre.symbol}</p>
+      <h2>{genre.shortName}</h2>
+      <p>{genre.description}</p>
+      <button className="primary-button wide" onClick={onStart} type="button">
+        {genre.startLabel}
+        <ArrowRight size={18} />
+      </button>
+    </article>
   );
 }
 
-function QuizPage({ answers, setAnswers, onBack, onResult }) {
+function QuizPage({ genre, answers, setAnswers, onBack, onResult }) {
   const [index, setIndex] = useState(0);
-  const progress = ((index + 1) / questions.length) * 100;
-  const selected = answers[index];
-  const canFinish = answers.filter((value) => value !== undefined).length === questions.length;
+  const question = genre.questions[index];
+  const answeredCount = answers.filter((answer) => answer !== undefined).length;
+  const canFinish = answeredCount === genre.questions.length;
+  const progress = ((index + 1) / genre.questions.length) * 100;
 
-  const choose = (value) => {
+  const choose = (optionIndex) => {
     const next = [...answers];
-    next[index] = value;
+    next[index] = optionIndex;
     setAnswers(next);
-    if (index < questions.length - 1) {
+    if (index < genre.questions.length - 1) {
       window.setTimeout(() => setIndex(index + 1), 140);
     }
   };
 
   return (
     <main className="quiz-page">
-      <section className="glass-panel quiz-panel">
+      <section className="glass-panel quiz-panel flow-quiz">
         <div className="quiz-top">
           <button className="ghost-button" onClick={index === 0 ? onBack : () => setIndex(index - 1)} type="button">
             <ArrowLeft size={16} />
             戻る
           </button>
-          <span>{index + 1} / {questions.length}</span>
+          <span>{index + 1} / {genre.questions.length}</span>
         </div>
         <div className="progress-track">
           <div style={{ width: `${progress}%` }} />
         </div>
-        <p className="question-label">Q{index + 1}</p>
-        <h1>{questions[index]}</h1>
-        <div className="answer-grid">
-          {answerOptions.map((option) => (
+        <p className="question-label">{genre.name}</p>
+        <h1>{question.text}</h1>
+        <div className="answer-grid flow-answer-grid">
+          {question.options.map((option, optionIndex) => (
             <button
-              className={selected === option.value ? "answer active" : "answer"}
+              className={answers[index] === optionIndex ? "answer active" : "answer"}
               key={option.label}
-              onClick={() => choose(option.value)}
+              onClick={() => choose(optionIndex)}
               type="button"
             >
               <span>{option.label}</span>
-              {selected === option.value && <Check size={16} />}
+              {answers[index] === optionIndex && <Check size={16} />}
             </button>
           ))}
         </div>
@@ -590,86 +471,46 @@ function QuizPage({ answers, setAnswers, onBack, onResult }) {
   );
 }
 
-function ResultPage({ type, onRestart }) {
+function ResultPage({ genre, result, onRestart }) {
+  const labels = genre.resultLabels;
   return (
-    <main className="result-page">
-      <section className="result-hero glass-panel">
-        <TypeVisual type={type} large />
+    <main className="result-page flow-result-page">
+      <section className="result-hero glass-panel flow-result-hero">
+        <ResultVisual genre={genre} />
         <div>
-          <p className="eyebrow">your moon type</p>
-          <h1 className="result-title">{type.name}</h1>
-          <p className="symbol">{type.symbol}</p>
-          <p className="lead">{type.short}</p>
+          <p className="eyebrow">{genre.name}</p>
+          <h1 className="result-title">{result.name}</h1>
+          <p className="symbol">{genre.symbol}</p>
+          <p className="lead">{result.summary}</p>
         </div>
       </section>
 
-      <section className="reading-grid">
-        <Reading title="このタイプの本質" body={type.essence} />
-        <Reading title="恋愛で出やすい癖" body={type.habit} />
-        <Reading title="苦しくなりやすい夜" body={type.night} />
-        <Reading title="相性が良い恋" body={type.match} />
+      <section className="reading-grid flow-reading-grid">
+        <Reading title={labels.flow} body={result.flow} />
+        <Reading title={labels.view} body={result.view} />
+        <Reading title={labels.reason} body={result.reason} />
+        <Reading title={labels.avoid} body={result.avoid} />
+        <Reading title={labels.action} body={result.action} />
       </section>
 
       <section className="moon-message">
         <p className="eyebrow">tsukuyomi message</p>
         <h2>月読メッセージ</h2>
-        <p>{type.message}</p>
-      </section>
-
-      <section className="type-gallery">
-        <h2>16の恋愛命式</h2>
-        <div className="type-cards">
-          {typeData.map((item) => (
-            <article className={item.id === type.id ? "type-card current" : "type-card"} key={item.id}>
-              <TypeVisual type={item} />
-              <h3>{item.name}</h3>
-              <p>{item.symbol}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="cta-panel glass-panel">
-        <p className="eyebrow">night letter</p>
-        <h2>夜の手紙を受け取る</h2>
         <p>
-          この診断で見えた感情を、一度で終わらせなくていい。彼の沈黙、執着、復縁、
-          命式とカードの流れ。長い夜に、静かに届く言葉を受け取りませんか。
+          今の流れは、あなたを怖がらせるためのものではありません。
+          立ち止まる夜にも、整える意味があります。今日見えた次の一手を、
+          できる範囲で静かに持ち帰ってください。
         </p>
-        <a className="secondary-button" href="/letter">
-          夜の手紙を受け取る
-          <Mail size={18} />
-        </a>
       </section>
 
-      <section className="cta-panel glass-panel">
-        <p className="eyebrow">long night reading</p>
-        <h2>診断結果をもっと深く読む夜</h2>
-        <p>
-          あなたの恋愛命式は、まだ表面だけしか見えていません。執着の理由。彼との距離感。
-          恋愛で苦しくなる夜。その流れを、もう少し深く静かに読み解きます。
-        </p>
-        <a
-          className="primary-button"
-          href="/mini-course"
-          onClick={() => localStorage.setItem("tsukuyomiTypeId", String(type.id))}
-        >
-          もっと深く読む
-          <ArrowRight size={18} />
-        </a>
-      </section>
+      <DiagnosticCta genre={genre} />
+      <CommonLineCta />
 
-      <section className="line-panel glass-panel">
-        <p className="eyebrow">quiet room</p>
-        <h2>静かに話せる場所</h2>
+      <section className="notice-panel glass-panel">
         <p>
-          誰にも言えない恋を、ひとりで抱えなくていい。今の彼の気持ち、関係の流れ、
-          あなたの命式から見える恋愛傾向を、静かに整理します。
+          この診断は、タロットと四柱推命の象徴をもとに、今の感情や状況を整理するためのものです。
+          恋愛、収入、転職、投資、法律、医療などの結果を保証したり、専門的判断に代わるものではありません。
         </p>
-        <a className="secondary-button" href={SITE_CONFIG.LINE_URL}>
-          静かに話せる場所へ
-          <ArrowRight size={18} />
-        </a>
       </section>
 
       <button className="ghost-button restart" onClick={onRestart} type="button">
@@ -679,205 +520,84 @@ function ResultPage({ type, onRestart }) {
   );
 }
 
-function LetterPage() {
-  const [showKitForm, setShowKitForm] = useState(false);
-  const formAreaRef = useRef(null);
-
-  const revealForm = () => {
-    setShowKitForm(true);
-  };
-
-  useEffect(() => {
-    if (!showKitForm) return;
-
-    const formArea = formAreaRef.current;
-    if (!formArea) return;
-
-    formArea.scrollIntoView({ behavior: "smooth", block: "center" });
-
-    if (formArea.querySelector('script[data-uid="c22d2585e3"]')) return;
-
-    formArea.innerHTML = '<p class="kit-loading">夜の手紙を開いています...</p>';
-
-    const existingScript = document.querySelector('script[data-uid="c22d2585e3"]');
-    if (existingScript) return;
-
-    const script = document.createElement("script");
-    script.async = true;
-    script.dataset.uid = "c22d2585e3";
-    script.src = "https://tsukuyomi-night.kit.com/c22d2585e3/index.js";
-    script.addEventListener("load", () => {
-      window.setTimeout(() => {
-        const kitModal = document.querySelector(".formkit-modal");
-        if (kitModal && !formArea.contains(kitModal)) {
-          kitModal.classList.add("kit-inline-modal");
-          formArea.appendChild(kitModal);
-        }
-        formArea.querySelector(".kit-loading")?.remove();
-      }, 120);
-    });
-    formArea.appendChild(script);
-  }, [showKitForm]);
-
+function ResultVisual({ genre }) {
+  const Icon = genre.icon;
   return (
-    <main className="narrow-page funnel-page">
-      <section className="glass-panel funnel-panel">
-        <div className="letter-logo" aria-label="月読 tsukuyomi">
-          <span>月読</span>
-          <small>tsukuyomi</small>
-        </div>
-        <p className="eyebrow">night letter</p>
-        <h1>夜の手紙を受け取る</h1>
-        <h2 className="letter-subtitle">長い夜に、<br />そっと届く手紙。</h2>
-        <p className="lead">
-          夜になると、<br />
-          少しだけ苦しくなる人へ。
-        </p>
-        <p>
-          彼の沈黙。<br />
-          既読スルー。<br />
-          執着。<br />
-          復縁。<br />
-          忘れられない恋。<br />
-          <br />
-          四柱推命とタロットで、<br />
-          長い夜のための言葉を届けています。<br />
-          <br />
-          静かな夜に、<br />
-          そっと届く手紙を受け取りませんか。
-        </p>
-        <button className="primary-button wide letter-cta" onClick={revealForm} type="button">
-          夜の手紙を受け取る
-          <ArrowRight size={18} />
-        </button>
-        {showKitForm && (
-          <div className="kit-form-shell" ref={formAreaRef} aria-label="夜の手紙登録フォーム" />
-        )}
-      </section>
-    </main>
+    <div className={`type-visual type-visual-large flow-type-visual flow-type-${genre.id}`}>
+      <div className="orb" />
+      <div className="moon-ring" />
+      <div className="flow-symbol">
+        <Icon size={42} />
+      </div>
+      <div className="tarot-frame" />
+      <div className="constellation">
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="type-number">月</div>
+    </div>
   );
 }
 
-function MiniCoursePage({ selectedType, navigate }) {
+function DiagnosticCta({ genre }) {
+  const { cta } = genre;
   return (
-    <main className="result-page funnel-page">
-      <section className="result-hero glass-panel">
-        <TypeVisual type={selectedType} large />
-        <div>
-          <p className="eyebrow">mini course</p>
-          <h1 className="result-title">診断結果をもっと深く読む夜</h1>
-          <p className="lead">あなたの恋愛命式は、<br />まだ表面しか見えていません。</p>
+    <section className="cta-panel glass-panel flow-cta-panel">
+      <p className="eyebrow">deeper reading</p>
+      <h2>{cta.title}</h2>
+      <p>{cta.body}</p>
+      <p>
+        診断結果を読んで、「自分の場合はどう動けばいいんだろう」と思った方へ。
+        LINEでは、今の状況に合わせて、必要な鑑定や次の一手を静かにご案内しています。
+      </p>
+      <a className="primary-button line-button" href={SITE_CONFIG.LINE_URL}>
+        {cta.lineLabel}
+        <ArrowRight size={18} />
+      </a>
+
+      <div className="base-button-stack">
+        {cta.products.map((product) => (
+          <a className="secondary-button base-button" href={product.href} key={product.href}>
+            {product.label}
+            <LineChart size={18} />
+          </a>
+        ))}
+      </div>
+
+      {cta.premium && (
+        <div className="premium-support">
+          <p>{cta.premium.text}</p>
+          <a className="secondary-button base-button" href={cta.premium.href}>
+            {cta.premium.label}
+            <Sparkles size={18} />
+          </a>
         </div>
-      </section>
-
-      <section className="moon-message">
-        <p>
-          診断結果は、あなたの恋の入口です。本当に苦しくなる理由は、もう少し深いところにあります。
-        </p>
-        <p>
-          既読がつくだけで苦しくなる夜。彼の沈黙を何度も考える時間。
-          離れたいのに離れられない感情。
-        </p>
-        <p>
-          その流れを、四柱推命とタロットで、もう少し深く読み解きます。
-        </p>
-      </section>
-
-      <section className="reading-card course-list">
-        <h2>この講座で読めること</h2>
-        <ul>
-          {courseBullets.map((item) => <li key={item}>{item}</li>)}
-        </ul>
-        <div className="price-line">100円</div>
-        <button className="primary-button wide" onClick={() => navigate("/checkout")} type="button">
-          100円で深く読む
-          <ArrowRight size={18} />
-        </button>
-      </section>
-    </main>
+      )}
+    </section>
   );
 }
 
-function CheckoutPage({ selectedType, navigate }) {
+function CommonLineCta() {
   return (
-    <main className="narrow-page funnel-page">
-      <section className="glass-panel funnel-panel">
-        <p className="eyebrow">checkout</p>
-        <h1>診断結果をもっと深く読む夜</h1>
-        <p className="lead">
-          この先は、あなたの診断タイプに合わせた小さな講座です。
-          決済後、あなた専用ページへ進めます。
-        </p>
-        <p className="symbol">{selectedType.name} / 100円</p>
-        <button
-          className="primary-button wide"
-          type="button"
-          onClick={() => {
-            localStorage.setItem("paymentCompleted", "true");
-            localStorage.setItem("tsukuyomiTypeId", String(selectedType.id));
-            navigate(`/course/${selectedType.id}`);
-          }}
-        >
-          決済して講座へ進む
-          <CreditCard size={18} />
-        </button>
-      </section>
-    </main>
-  );
-}
-
-function CoursePage({ type }) {
-  return (
-    <main className="result-page course-page">
-      <section className="result-hero glass-panel">
-        <TypeVisual type={type} large />
-        <div>
-          <p className="eyebrow">private course</p>
-          <h1 className="result-title">{type.name}</h1>
-          <p className="symbol">{type.symbol}</p>
-          <p className="lead">{type.short}</p>
-        </div>
-      </section>
-
-      <section className="reading-grid">
-        <Reading title="恋愛で苦しくなる理由" body={type.essence} />
-        <Reading title="出やすいパターン" body={type.habit} />
-        <Reading title="やめた方がいい行動" body="不安を消すためだけに連絡すること。相手の反応を見張ること。自分の心を後回しにして、関係だけを動かそうとすること。" />
-        <Reading title="心を戻すワーク" body="今夜いちばん苦しかった場面を一つだけ書き出し、その下に「私は何を確かめたかったのか」を一文で残してください。答えを急がず、感情を外へ置くことから始めます。" />
-      </section>
-
-      <section className="moon-message">
-        <p className="eyebrow">tsukuyomi message</p>
-        <h2>月読メッセージ</h2>
-        <p>{type.message}</p>
-      </section>
-
-      <section className="cta-panel glass-panel">
-        <p className="eyebrow">night letter</p>
-        <h2>夜の手紙を受け取る</h2>
-        <p>
-          この講座で見えた感情を、一度で終わらせなくていい。彼の沈黙。執着。復縁。
-          命式とカードの流れ。長い夜に、静かに届く言葉を受け取りませんか。
-        </p>
-        <a className="secondary-button" href="/letter">
-          夜の手紙を受け取る
-          <Mail size={18} />
-        </a>
-      </section>
-
-      <section className="line-panel glass-panel">
-        <p className="eyebrow">quiet room</p>
-        <h2>静かに話せる場所へ</h2>
-        <p>
-          誰にも言えない恋を、ひとりで抱えなくていい。今の彼の気持ち、関係の流れ、
-          あなたの命式から見える恋愛傾向を、静かに整理します。
-        </p>
-        <a className="secondary-button" href={SITE_CONFIG.LINE_URL}>
-          静かに話せる場所へ
-          <ArrowRight size={18} />
-        </a>
-      </section>
-    </main>
+    <section className="line-panel glass-panel flow-line-panel">
+      <p className="eyebrow">quiet room</p>
+      <h2>診断だけでは見えない部分があります</h2>
+      <p>
+        今の流れをもう少し深く整理したい方へ。
+        あなたの状況、悩みの背景、今取るべき次の一手は、
+        生年月日や具体的な状況によって変わります。
+      </p>
+      <p>
+        LINEでは、今の悩みに合わせて必要な鑑定や相談先をご案内しています。
+        高額な個別相談が必要かどうかも、まずは静かに整理できます。
+      </p>
+      <a className="primary-button line-button" href={SITE_CONFIG.LINE_URL}>
+        LINEで今の流れを相談する
+        <ArrowRight size={18} />
+      </a>
+    </section>
   );
 }
 
@@ -891,30 +611,19 @@ function Reading({ title, body }) {
 }
 
 export default function App() {
-  const [path, setPath] = useState(() => window.location.pathname);
-  const [form, setForm] = useState({
-    birthDate: "",
-    gender: "",
-    birthTime: "",
-    partnerBirthDate: "",
-  });
-  const [answers, setAnswers] = useState(Array(questions.length).fill(undefined));
-  const resultType = useMemo(() => calculateType(answers, form), [answers, form]);
-  const selectedType = getTypeById(getStoredTypeId());
-  const courseMatch = path.match(/^\/course\/(\d+)/);
-  const courseType = getTypeById(courseMatch?.[1] || selectedType.id);
+  const [path, setPath] = useState(getInitialPath);
+  const [selectedGenreId, setSelectedGenreId] = useState("love");
+  const [answers, setAnswers] = useState([]);
+  const genre = genreData[selectedGenreId] || genreData.love;
+
+  const resultKey = useMemo(() => getScoreResult(genre, answers), [genre, answers]);
+  const result = genre.results[resultKey];
 
   useEffect(() => {
     const handlePop = () => setPath(window.location.pathname);
     window.addEventListener("popstate", handlePop);
     return () => window.removeEventListener("popstate", handlePop);
   }, []);
-
-  useEffect(() => {
-    if (courseMatch && !isPaymentCompleted()) {
-      navigate("/checkout", { replace: true });
-    }
-  }, [path]);
 
   const navigate = (nextPath, options = {}) => {
     if (window.location.pathname !== nextPath) {
@@ -928,38 +637,37 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const restart = () => {
-    setAnswers(Array(questions.length).fill(undefined));
-    navigate("/");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const startGenre = (genreId) => {
+    setSelectedGenreId(genreId);
+    setAnswers(Array(genreData[genreId].questions.length).fill(undefined));
+    navigate(`/diagnosis/${genreId}`);
   };
 
-  const go = (nextPage) => {
-    navigate(nextPage);
+  const restart = () => {
+    setAnswers([]);
+    navigate("/");
+  };
+
+  const showResult = () => {
+    const key = getScoreResult(genre, answers);
+    localStorage.setItem("tsukuyomiFlowGenre", selectedGenreId);
+    localStorage.setItem("tsukuyomiFlowResult", key);
+    navigate("/result");
   };
 
   return (
-    <Shell step={go}>
-      {path === "/" && <Home onStart={() => go("/input")} />}
-      {path === "/input" && (
-        <InputPage form={form} setForm={setForm} onNext={() => go("/quiz")} />
-      )}
-      {path === "/quiz" && (
+    <Shell navigate={navigate}>
+      {path === "/" && <Home startGenre={startGenre} />}
+      {path.startsWith("/diagnosis") && (
         <QuizPage
+          genre={genre}
           answers={answers}
           setAnswers={setAnswers}
-          onBack={() => go("/input")}
-          onResult={() => {
-            localStorage.setItem("tsukuyomiTypeId", String(resultType.id));
-            go("/result");
-          }}
+          onBack={() => navigate("/")}
+          onResult={showResult}
         />
       )}
-      {path === "/result" && <ResultPage type={resultType} onRestart={restart} />}
-      {path === "/letter" && <LetterPage />}
-      {path === "/mini-course" && <MiniCoursePage selectedType={selectedType} navigate={navigate} />}
-      {path === "/checkout" && <CheckoutPage selectedType={selectedType} navigate={navigate} />}
-      {courseMatch && isPaymentCompleted() && <CoursePage type={courseType} />}
+      {path === "/result" && <ResultPage genre={genre} result={result} onRestart={restart} />}
     </Shell>
   );
 }
